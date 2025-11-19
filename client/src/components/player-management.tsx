@@ -4,6 +4,7 @@ import { Plus, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import PlayerCard from "./player-card";
@@ -57,16 +58,30 @@ export default function PlayerManagement({
             Add
           </Button>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Queue Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-foreground">Queue</h3>
-              <Badge variant="secondary" className="rounded-full">
-                {queuePlayers.length}
-              </Badge>
-            </div>
-            <div className="space-y-2">
+        <CardContent>
+          <Tabs defaultValue="queue" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="queue" className="gap-2" data-testid="tab-queue">
+                Queue
+                <Badge variant="secondary" className="rounded-full">
+                  {queuePlayers.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="playing" className="gap-2" data-testid="tab-playing">
+                Playing
+                <Badge variant="secondary" className="rounded-full">
+                  {playingPlayers.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="break" className="gap-2" data-testid="tab-break">
+                Break
+                <Badge variant="secondary" className="rounded-full">
+                  {breakPlayers.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="queue" className="space-y-2 mt-0">
               {queuePlayers.length > 0 ? (
                 queuePlayers.map((player) => (
                   <PlayerCard key={player.id} player={player} sessionId={sessionId} />
@@ -77,50 +92,32 @@ export default function PlayerManagement({
                   No players in queue
                 </div>
               )}
-            </div>
-          </div>
+            </TabsContent>
 
-          {/* Playing Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-foreground">Playing</h3>
-              <Badge variant="default" className="rounded-full bg-primary">
-                {playingPlayers.length}
-              </Badge>
-            </div>
-            <div className="space-y-2">
+            <TabsContent value="playing" className="space-y-2 mt-0">
               {playingPlayers.length > 0 ? (
                 playingPlayers.map((player) => (
                   <PlayerCard key={player.id} player={player} sessionId={sessionId} />
                 ))
               ) : (
-                <div className="text-center py-6 text-sm text-muted-foreground">
+                <div className="text-center py-8 text-sm text-muted-foreground">
                   No players currently playing
                 </div>
               )}
-            </div>
-          </div>
+            </TabsContent>
 
-          {/* Break Section */}
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-medium text-foreground">Break</h3>
-              <Badge variant="outline" className="rounded-full">
-                {breakPlayers.length}
-              </Badge>
-            </div>
-            <div className="space-y-2">
+            <TabsContent value="break" className="space-y-2 mt-0">
               {breakPlayers.length > 0 ? (
                 breakPlayers.map((player) => (
                   <PlayerCard key={player.id} player={player} sessionId={sessionId} />
                 ))
               ) : (
-                <div className="text-center py-6 text-sm text-muted-foreground">
+                <div className="text-center py-8 text-sm text-muted-foreground">
                   No players on break
                 </div>
               )}
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
