@@ -19,7 +19,7 @@ export const sessions = pgTable("sessions", {
   location: text("location"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   lastPlayedAt: timestamp("last_played_at"),
-  defaultCourts: integer("default_courts").notNull().default(2),
+  defaultCourts: integer("default_courts").notNull().default(3),
   defaultMatchMode: matchModeEnum("default_match_mode").notNull().default('balanced'),
 });
 
@@ -115,7 +115,7 @@ export const insertSessionSchema = createInsertSchema(sessions).omit({
 }).extend({
   description: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
-  defaultCourts: z.number().int().min(1).max(5).default(2),
+  defaultCourts: z.number().int().min(1).max(5).default(3),
   defaultMatchMode: z.enum(['balanced', 'non-balanced', 'gender-based', 'gender-specific', 'random']).default('balanced'),
 });
 

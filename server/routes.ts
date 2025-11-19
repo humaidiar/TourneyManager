@@ -38,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const session = await storage.createSession(validatedData);
 
       // Create default courts for the session
-      const defaultCourtCount = validatedData.defaultCourts || 2;
+      const defaultCourtCount = validatedData.defaultCourts || 3;
       for (let i = 1; i <= defaultCourtCount; i++) {
         await storage.createCourt({
           sessionId: session.id,

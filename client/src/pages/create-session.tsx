@@ -18,7 +18,7 @@ export default function CreateSession() {
     name: "",
     description: "",
     location: "",
-    defaultCourts: 2,
+    defaultCourts: 3,
     defaultMatchMode: "balanced",
   });
 
