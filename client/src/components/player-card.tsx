@@ -1,0 +1,150 @@
+import { useMutation } from "@tanstack/react-query";
+import { MoreVertical, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { useState } from "react";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { Player } from "@shared/schema";
+
+interface PlayerCardProps {
+  player: Player;
+  sessionId: string;
+}
+
+const skillColors = {
+  Starter: "bg-chart-3/10 text-chart-3 border-chart-3/20",
+  Intermediate: "bg-chart-1/10 text-chart-1 border-chart-1/20",
+  Pro: "bg-chart-5/10 text-chart-5 border-chart-5/20",
+};
+
+const statusOptions = ["Queue", "Playing", "Break"] as const;
+
+export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { toast } = useToast();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      return await apiRequest("PATCH", `/api/players/${player.id}`, { status: newStatus });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("DELETE", `/api/players/${player.id}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      toast({
+        title: "Player removed",
+        description: `${player.name} has been removed.`,
+      });
+      setShowDeleteDialog(false);
+    },
+  });
+
+  return (
+    <>
+      <div
+        className="group flex items-center justify-between p-4 rounded-xl border bg-card hover-elevate transition-all"
+        data-testid={`card-player-${player.id}`}
+      >
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            <h4 className="font-medium text-sm truncate">{player.name}</h4>
+            <Badge
+              variant="outline"
+              className={`rounded-full text-xs font-semibold border ${skillColors[player.skillCategory as keyof typeof skillColors]}`}
+            >
+              {player.skillCategory}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span>{player.gender}</span>
+            <span>•</span>
+            <span>{player.gamesPlayed} games</span>
+          </div>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              data-testid={`button-player-menu-${player.id}`}
+            >
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="rounded-xl">
+            <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {statusOptions.map((status) => (
+              <DropdownMenuItem
+                key={status}
+                onClick={() => updateStatusMutation.mutate(status)}
+                disabled={player.status === status}
+                data-testid={`menu-item-status-${status.toLowerCase()}`}
+              >
+                Move to {status}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-destructive focus:text-destructive"
+              data-testid="menu-item-delete"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Player
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="rounded-3xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Player</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {player.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteMutation.mutate()}
+              className="rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="button-confirm-delete"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
