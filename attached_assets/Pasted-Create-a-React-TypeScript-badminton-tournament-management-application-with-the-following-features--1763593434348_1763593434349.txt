@@ -1,0 +1,197 @@
+Create a React + TypeScript badminton tournament management application with the following features:
+
+CORE FEATURES:
+- Session/group management for different social games
+- Player management system with skill categories (Starter, Intermediate, Pro)
+- Flexible match generation with multiple modes
+- Dynamic court management (1-5 courts)
+- Game tracking and player rotation
+- Data persistence using localStorage
+- Responsive design for mobile and desktop
+
+TECHNICAL REQUIREMENTS:
+- Framework: React 19 (latest version) with TypeScript
+- Styling: TailwindCSS
+- State Management: React Context API + useReducer
+- Storage: localStorage with auto-save
+- Build Tool: Create React App
+
+PROJECT STRUCTURE:
+src/
+  components/
+    sessions/     # Session/group creation and management
+    players/      # Player management UI
+    matches/      # Match generation and display
+    dashboard/    # Statistics and overview
+    common/       # Reusable components
+  contexts/       # State management
+  hooks/          # Custom React hooks
+  types/          # TypeScript definitions
+  utils/          # Business logic and algorithms
+
+USER FLOW:
+
+1. LANDING/SESSIONS PAGE (First Screen):
+   - Display list of existing game sessions (if any)
+   - Prominent "Create New Session" button
+   - Each session card shows:
+     * Session name (e.g., "Monday Night Badminton", "Weekend Warriors")
+     * Date created
+     * Number of players
+     * Quick stats (last played, total games)
+   - Click session to enter its dashboard
+   - Option to edit/delete sessions
+   - Quick access to most recent session
+
+2. CREATE SESSION FLOW:
+   - Modal/page to create new session
+   - Required fields:
+     * Session name
+     * Optional: description, location, recurring schedule
+   - Auto-creates session and navigates to dashboard
+   - Session data stored separately in localStorage
+
+3. DASHBOARD (Session Home):
+   - Shows current session name at top
+   - Navigation back to sessions list
+   - Main sections:
+     * Player management
+     * Match generation
+     * Court setup
+     * Active matches
+     * Quick stats
+
+KEY FUNCTIONALITY:
+
+1. SESSION MANAGEMENT:
+   - Create multiple independent game sessions
+   - Each session has its own players, matches, and settings
+   - Switch between sessions easily
+   - Delete sessions
+   - Reset session: reset all games count to 0 and move all players to Queue
+   - Reset button with confirmation dialog
+
+2. PLAYER MANAGEMENT:
+   - Add/edit/delete players (per session)
+   - Set skill category: Starter, Intermediate, or Pro
+   - Add player gender (Male, Female, Other)
+   - Toggle player states: Queue, Playing, Break
+   - Switch players between Playing and Queue with drag-and-drop or buttons
+   - Track games played per player
+   - Bulk actions: Move multiple players to Queue/Playing/Break
+
+3. MATCH GENERATION (Multiple Modes):
+   - BALANCED MODE: Pair high-skill with low-skill players
+   - NON-BALANCED MODE: Group similar skill levels together
+   - GENDER-BASED MODE: Create gender-balanced teams (mixed doubles)
+   - GENDER-SPECIFIC MODE: Male-only or Female-only matches
+   - RANDOM MODE: Fisher-Yates shuffle for variety
+   - Fair rotation: Prioritize players with fewer games
+   - Auto-adjust to available courts
+
+4. COURT MANAGEMENT:
+   - Configure 1-5 courts dynamically (per session)
+   - Customizable court names (e.g., "Court A", "Center Court", "Practice Court")
+   - Edit court names inline or in settings
+   - Optimize court usage based on available players
+   - Visual court status indicators
+   - Save custom court names to localStorage
+
+5. BASIC TRACKING:
+   - Games played per player
+   - Current matches display with court names
+   - Player queue status
+   - Simple match history
+
+6. UI/UX:
+   - Clean, modern interface
+   - Dark/light theme toggle
+   - Mobile-responsive design
+   - Accessible (WCAG 2.1 AA)
+   - Skill categories displayed with badges/chips (use Replit's theme colors)
+   - Drag-and-drop interface for player management
+
+MATCH GENERATION ALGORITHM:
+- Sort players by games played (ascending) for fair rotation
+- Apply selected generation mode:
+  * BALANCED: Pair Pro with Starter, Intermediate with Intermediate
+  * NON-BALANCED: Group Pro together, Intermediate together, Starter together
+  * GENDER-BASED: Ensure 2 males + 2 females per match (mixed doubles)
+  * GENDER-SPECIFIC: Only males or only females per match
+  * RANDOM: Shuffle fairly using Fisher-Yates algorithm
+- Ensure 4 players per match (doubles format)
+- Fill courts efficiently based on available players
+- Update games played count after match generation
+
+DATA MODELS:
+```typescript
+interface Session {
+  id: string;
+  name: string;
+  description?: string;
+  location?: string;
+  createdAt: Date;
+  lastPlayedAt?: Date;
+  players: Player[];
+  courts: Court[];
+  matches: Match[];
+  settings: SessionSettings;
+}
+
+interface Player {
+  id: string;
+  name: string;
+  skillCategory: 'Starter' | 'Intermediate' | 'Pro';
+  gender: 'Male' | 'Female' | 'Other';
+  gamesPlayed: number;
+  status: 'Queue' | 'Playing' | 'Break';
+  isCore: boolean;
+}
+
+interface Court {
+  id: string;
+  name: string;
+  defaultName: string; // e.g., "Court 1", "Court 2"
+  isActive: boolean;
+}
+
+interface Match {
+  id: string;
+  courtId: string;
+  courtName: string;
+  team1: [Player, Player];
+  team2: [Player, Player];
+  status: 'pending' | 'in-progress' | 'completed';
+  generatedAt: Date;
+}
+
+interface SessionSettings {
+  defaultCourts: number;
+  defaultMatchMode: 'balanced' | 'non-balanced' | 'gender-based' | 'gender-specific' | 'random';
+}
+```
+
+MATCH GENERATION SETTINGS UI:
+- Mode selector dropdown with 5 options
+- Court count selector (1-5)
+- Court name editor (click to edit each court name)
+- "Generate Matches" button
+- Display mode description on selection
+- Show player eligibility counts for each mode
+
+PLAYER STATUS SWITCHING:
+- Visual sections for "Queue", "Playing", and "Break"
+- Click player to toggle between Queue ↔ Playing
+- Drag-and-drop players between status sections
+- Quick action buttons: "Move to Queue", "Move to Playing", "Set Break"
+- When match is generated, automatically move selected players to "Playing" status
+- After match completion, prompt to move players back to "Queue"
+
+NAVIGATION STRUCTURE:
+1. App loads → Sessions List Page
+2. User creates session → Auto-navigate to Dashboard
+3. User clicks existing session → Navigate to Dashboard
+4. Dashboard shows: Session name, Back button, Main controls
+5. Settings/court management accessible from Dashboard
+
+Make the app production-ready with proper error handling, TypeScript types, and performance optimizations.
