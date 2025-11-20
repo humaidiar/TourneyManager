@@ -182,7 +182,18 @@ export default function PlayerCard({ player, sessionId, allPlayers, hasActiveMat
               return (
                 <DropdownMenuItem
                   key={status}
-                  onClick={() => updateStatusMutation.mutate(status)}
+                  onClick={() => {
+                    // Prevent moving to Playing when there are no active matches
+                    if (status === "Playing" && !hasActiveMatches) {
+                      toast({
+                        title: "Cannot move to Playing",
+                        description: "Players can only be in Playing status when there are active matches.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    updateStatusMutation.mutate(status);
+                  }}
                   disabled={isDisabled}
                   data-testid={`menu-item-status-${status.toLowerCase()}`}
                 >
