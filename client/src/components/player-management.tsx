@@ -81,41 +81,47 @@ export default function PlayerManagement({
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="queue" className="space-y-2 mt-0">
-              {queuePlayers.length > 0 ? (
-                queuePlayers.map((player) => (
-                  <PlayerCard key={player.id} player={player} sessionId={sessionId} />
-                ))
-              ) : (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  <UserPlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  No players in queue
-                </div>
-              )}
+            <TabsContent value="queue" className="mt-0">
+              <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
+                {queuePlayers.length > 0 ? (
+                  queuePlayers.map((player) => (
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    <UserPlus className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    No players in queue
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
-            <TabsContent value="playing" className="space-y-2 mt-0">
-              {playingPlayers.length > 0 ? (
-                playingPlayers.map((player) => (
-                  <PlayerCard key={player.id} player={player} sessionId={sessionId} />
-                ))
-              ) : (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  No players currently playing
-                </div>
-              )}
+            <TabsContent value="playing" className="mt-0">
+              <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
+                {playingPlayers.length > 0 ? (
+                  playingPlayers.map((player) => (
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    No players currently playing
+                  </div>
+                )}
+              </div>
             </TabsContent>
 
-            <TabsContent value="break" className="space-y-2 mt-0">
-              {breakPlayers.length > 0 ? (
-                breakPlayers.map((player) => (
-                  <PlayerCard key={player.id} player={player} sessionId={sessionId} />
-                ))
-              ) : (
-                <div className="text-center py-8 text-sm text-muted-foreground">
-                  No players on break
-                </div>
-              )}
+            <TabsContent value="break" className="mt-0">
+              <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
+                {breakPlayers.length > 0 ? (
+                  breakPlayers.map((player) => (
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-sm text-muted-foreground">
+                    No players on break
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>
