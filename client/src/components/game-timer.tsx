@@ -3,7 +3,7 @@ import { Play, Pause, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-const PRESET_DURATIONS = [5, 10, 15, 20];
+const PRESET_DURATIONS = [5, 10, 15];
 
 export default function GameTimer() {
   const [duration, setDuration] = useState(0); // Default 0 minutes
