@@ -83,19 +83,51 @@ function balancedTeams(players: Player[]): { team1: Team; team2: Team } {
 }
 
 function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | null {
-  // Ensure mixed doubles: 2 males + 2 females
   const males = players.filter((p) => p.gender === "Male");
   const females = players.filter((p) => p.gender === "Female");
 
-  if (males.length < 2 || females.length < 2) {
-    // Fall back to random if we don't have proper gender balance
-    return randomTeams(players);
+  // Prioritize mixed doubles: 2 males + 2 females
+  if (males.length === 2 && females.length === 2) {
+    return {
+      team1: { player1: males[0], player2: females[0] },
+      team2: { player1: males[1], player2: females[1] },
+    };
   }
 
-  return {
-    team1: { player1: males[0], player2: females[0] },
-    team2: { player1: males[1], player2: females[1] },
-  };
+  // All-female matches if we have 4 females
+  if (females.length === 4) {
+    return {
+      team1: { player1: females[0], player2: females[1] },
+      team2: { player1: females[2], player2: females[3] },
+    };
+  }
+
+  // All-male matches if we have 4 males
+  if (males.length === 4) {
+    return {
+      team1: { player1: males[0], player2: males[1] },
+      team2: { player1: males[2], player2: males[3] },
+    };
+  }
+
+  // Handle 3 females + 1 male: Create F+F vs F+M
+  if (females.length === 3 && males.length === 1) {
+    return {
+      team1: { player1: females[0], player2: females[1] },
+      team2: { player1: females[2], player2: males[0] },
+    };
+  }
+
+  // Handle 3 males + 1 female: Create M+M vs M+F
+  if (males.length === 3 && females.length === 1) {
+    return {
+      team1: { player1: males[0], player2: males[1] },
+      team2: { player1: males[2], player2: females[0] },
+    };
+  }
+
+  // Fall back to random for other combinations
+  return randomTeams(players);
 }
 
 function randomTeams(players: Player[]): { team1: Team; team2: Team } {

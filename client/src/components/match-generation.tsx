@@ -16,7 +16,7 @@ interface MatchGenerationProps {
 const matchModeDescriptions: Record<MatchMode, string> = {
   balanced: "Pair high-skill with low-skill players for competitive matches",
   "non-balanced": "Group similar skill levels together",
-  "gender-based": "Create mixed doubles (2 males + 2 females per match)",
+  "gender-based": "Prioritize mixed doubles, allow same-gender matches when needed",
   "gender-specific": "Create male-only or female-only matches",
   random: "Randomly shuffle players for variety",
 };
