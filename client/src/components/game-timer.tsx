@@ -10,8 +10,10 @@ export default function GameTimer() {
   const [timeRemaining, setTimeRemaining] = useState(10 * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
     // Initialize AudioContext
@@ -126,6 +128,82 @@ export default function GameTimer() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const calculateAngleFromEvent = (e: MouseEvent | TouchEvent): number | null => {
+    if (!svgRef.current) return null;
+    
+    const svg = svgRef.current;
+    const rect = svg.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    let clientX: number, clientY: number;
+    if (e instanceof MouseEvent) {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    } else {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    }
+    
+    const deltaX = clientX - centerX;
+    const deltaY = clientY - centerY;
+    
+    // Calculate angle in degrees (0° at top, clockwise)
+    let angle = Math.atan2(deltaX, -deltaY) * (180 / Math.PI);
+    if (angle < 0) angle += 360;
+    
+    return angle;
+  };
+
+  const setDurationFromAngle = (angle: number) => {
+    // Convert angle (0-360) to minutes (1-60)
+    const minutes = Math.max(1, Math.round((angle / 360) * 60));
+    const seconds = minutes * 60;
+    setDuration(seconds);
+    setTimeRemaining(seconds);
+    setIsFinished(false);
+  };
+
+  const handleCircleMouseDown = (e: React.MouseEvent | React.TouchEvent) => {
+    if (isRunning) return; // Can't adjust while running
+    e.preventDefault();
+    setIsDragging(true);
+    
+    const angle = calculateAngleFromEvent(e.nativeEvent as MouseEvent | TouchEvent);
+    if (angle !== null) {
+      setDurationFromAngle(angle);
+    }
+  };
+
+  const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+    if (!isDragging || isRunning) return;
+    
+    const angle = calculateAngleFromEvent(e);
+    if (angle !== null) {
+      setDurationFromAngle(angle);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleMouseMove);
+      window.addEventListener('touchend', handleMouseUp);
+      
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+        window.removeEventListener('touchmove', handleMouseMove);
+        window.removeEventListener('touchend', handleMouseUp);
+      };
+    }
+  }, [isDragging]);
+
   const progress = duration > 0 ? (timeRemaining / duration) * 100 : 0;
   const circumference = 2 * Math.PI * 90; // radius = 90
   const strokeDashoffset = circumference - (progress / 100) * circumference;
@@ -156,7 +234,13 @@ export default function GameTimer() {
         {/* Circular Timer */}
         <div className="flex justify-center">
           <div className="relative w-64 h-64">
-            <svg className="w-full h-full transform -rotate-90">
+            <svg 
+              ref={svgRef}
+              className="w-full h-full transform -rotate-90"
+              onMouseDown={handleCircleMouseDown}
+              onTouchStart={handleCircleMouseDown}
+              style={{ cursor: isRunning ? 'default' : 'pointer' }}
+            >
               {/* Background circle */}
               <circle
                 cx="128"
@@ -173,17 +257,29 @@ export default function GameTimer() {
                 r="90"
                 fill="none"
                 stroke="hsl(var(--primary))"
-                strokeWidth="8"
+                strokeWidth={isDragging ? "12" : "8"}
                 strokeLinecap="round"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
-                className={`transition-all duration-1000 ${
-                  isFinished ? 'animate-pulse' : ''
-                }`}
+                className={`transition-all ${
+                  isDragging ? 'duration-75' : 'duration-1000'
+                } ${isFinished ? 'animate-pulse' : ''}`}
               />
+              {/* Interactive overlay circle for better drag area */}
+              {!isRunning && (
+                <circle
+                  cx="128"
+                  cy="128"
+                  r="90"
+                  fill="none"
+                  stroke="transparent"
+                  strokeWidth="30"
+                  className="hover:stroke-primary/10 transition-colors cursor-pointer"
+                />
+              )}
             </svg>
             {/* Time display in center */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <div
                 className={`text-5xl font-bold tabular-nums ${
                   isFinished ? 'text-destructive animate-pulse' : 'text-foreground'
@@ -193,7 +289,7 @@ export default function GameTimer() {
                 {formatTime(timeRemaining)}
               </div>
               <div className="text-xs text-muted-foreground mt-2 uppercase tracking-wide">
-                {isFinished ? 'Time Up!' : 'Remaining'}
+                {isFinished ? 'Time Up!' : isRunning ? 'Remaining' : 'Set Duration'}
               </div>
             </div>
           </div>
