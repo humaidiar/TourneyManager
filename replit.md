@@ -177,6 +177,7 @@ Currently, the application does not implement authentication or user accounts. A
 - Active Matches section repositioned to appear above the 3-column grid for better visibility
 - Edit session functionality with pencil icon in top-right of session cards (name, description, location)
 - Session delete functionality with confirmation dialog
+- "Complete All Matches" button for batch match completion - returns all players to queue with one click
 
 ### Testing & Quality
 - All E2E tests passing with comprehensive coverage:
