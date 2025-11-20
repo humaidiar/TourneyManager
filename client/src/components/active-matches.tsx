@@ -249,20 +249,24 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 1
                       </p>
                       <div className="space-y-2">
-                        <button
-                          onClick={() => handlePlayerClick(team1Player1)}
-                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
-                          data-testid={`button-swap-player-${team1Player1?.id}`}
-                        >
-                          {team1Player1?.name || "Unknown"}
-                        </button>
-                        <button
-                          onClick={() => handlePlayerClick(team1Player2)}
-                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
-                          data-testid={`button-swap-player-${team1Player2?.id}`}
-                        >
-                          {team1Player2?.name || "Unknown"}
-                        </button>
+                        <div>
+                          <button
+                            onClick={() => handlePlayerClick(team1Player1)}
+                            className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                            data-testid={`button-swap-player-${team1Player1?.id}`}
+                          >
+                            {team1Player1?.name || "Unknown"}
+                          </button>
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handlePlayerClick(team1Player2)}
+                            className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                            data-testid={`button-swap-player-${team1Player2?.id}`}
+                          >
+                            {team1Player2?.name || "Unknown"}
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -281,20 +285,24 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 2
                       </p>
                       <div className="space-y-2">
-                        <button
-                          onClick={() => handlePlayerClick(team2Player1)}
-                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
-                          data-testid={`button-swap-player-${team2Player1?.id}`}
-                        >
-                          {team2Player1?.name || "Unknown"}
-                        </button>
-                        <button
-                          onClick={() => handlePlayerClick(team2Player2)}
-                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
-                          data-testid={`button-swap-player-${team2Player2?.id}`}
-                        >
-                          {team2Player2?.name || "Unknown"}
-                        </button>
+                        <div>
+                          <button
+                            onClick={() => handlePlayerClick(team2Player1)}
+                            className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                            data-testid={`button-swap-player-${team2Player1?.id}`}
+                          >
+                            {team2Player1?.name || "Unknown"}
+                          </button>
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => handlePlayerClick(team2Player2)}
+                            className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                            data-testid={`button-swap-player-${team2Player2?.id}`}
+                          >
+                            {team2Player2?.name || "Unknown"}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
