@@ -1,13 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Plus, Calendar, Users, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ThemeToggle } from "@/components/theme-toggle";
+import EditSessionDialog from "@/components/edit-session-dialog";
 import type { Session } from "@shared/schema";
 
 export default function SessionsList() {
+  const [, setLocation] = useLocation();
   const { data: sessions, isLoading } = useQuery<Session[]>({
     queryKey: ["/api/sessions"],
   });
@@ -60,12 +62,14 @@ export default function SessionsList() {
         ) : sessions && sessions.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sessions.map((session) => (
-              <Link key={session.id} href={`/sessions/${session.id}`}>
+              <div key={session.id} className="relative">
                 <Card 
                   className="rounded-2xl hover-elevate active-elevate-2 transition-all cursor-pointer h-full"
                   data-testid={`card-session-${session.id}`}
+                  onClick={() => setLocation(`/sessions/${session.id}`)}
                 >
-                  <CardHeader className="pb-3">
+                  <EditSessionDialog session={session} />
+                  <CardHeader className="pb-3 pr-12">
                     <CardTitle className="text-xl font-semibold">
                       {session.name}
                     </CardTitle>
@@ -98,7 +102,7 @@ export default function SessionsList() {
                     )}
                   </CardContent>
                 </Card>
-              </Link>
+              </div>
             ))}
           </div>
         ) : (
