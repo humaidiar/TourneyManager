@@ -72,54 +72,41 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
     return players.find((p) => p.id === playerId);
   };
 
-  const getSkillBadgeVariant = (skill: string) => {
-    switch (skill) {
-      case "Pro":
-        return "default";
-      case "Intermediate":
-        return "secondary";
-      case "Starter":
-        return "outline";
-      default:
-        return "outline";
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Section Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h2 className="text-2xl font-bold text-foreground">Active Matches</h2>
         <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-bold text-foreground">Active Matches</h2>
           {pendingMatches.length > 0 && (
             <Badge variant="secondary" className="rounded-full text-base px-4 py-1">
               {pendingMatches.length} {pendingMatches.length === 1 ? "match" : "matches"}
             </Badge>
           )}
-          {pendingMatches.length > 0 ? (
-            <Button
-              onClick={() => completeAllMutation.mutate()}
-              disabled={completeAllMutation.isPending}
-              className="rounded-full"
-              variant="default"
-              data-testid="button-complete-all-matches"
-            >
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
-            </Button>
-          ) : (
-            <Button
-              onClick={() => generateMatchesMutation.mutate()}
-              disabled={!canGenerateMatches || generateMatchesMutation.isPending}
-              className="rounded-full"
-              variant="default"
-              data-testid="button-generate-matches-quick"
-            >
-              <ShuffleIcon className="w-4 h-4 mr-2" />
-              {generateMatchesMutation.isPending ? "Generating..." : "Generate Matches"}
-            </Button>
-          )}
         </div>
+        {pendingMatches.length > 0 ? (
+          <Button
+            onClick={() => completeAllMutation.mutate()}
+            disabled={completeAllMutation.isPending}
+            className="rounded-full"
+            variant="default"
+            data-testid="button-complete-all-matches"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
+          </Button>
+        ) : (
+          <Button
+            onClick={() => generateMatchesMutation.mutate()}
+            disabled={!canGenerateMatches || generateMatchesMutation.isPending}
+            className="rounded-full"
+            variant="default"
+            data-testid="button-generate-matches-quick"
+          >
+            <ShuffleIcon className="w-4 h-4 mr-2" />
+            {generateMatchesMutation.isPending ? "Generating..." : "Generate Matches"}
+          </Button>
+        )}
       </div>
 
       {/* Matches Grid */}
@@ -138,14 +125,9 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                 data-testid={`card-match-${match.id}`}
               >
                 <CardHeader className="pb-4 bg-primary/5">
-                  <div className="flex items-center justify-between gap-2">
-                    <CardTitle className="text-2xl font-bold text-foreground">
-                      {match.courtName}
-                    </CardTitle>
-                    <Badge variant="outline" className="rounded-full">
-                      {match.status}
-                    </Badge>
-                  </div>
+                  <CardTitle className="text-2xl font-bold text-foreground text-center">
+                    {match.courtName}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
                   <div className="space-y-6">
@@ -155,32 +137,12 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 1
                       </p>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-lg font-medium text-foreground">
-                            {team1Player1?.name || "Unknown"}
-                          </p>
-                          {team1Player1 && (
-                            <Badge
-                              variant={getSkillBadgeVariant(team1Player1.skillCategory)}
-                              className="rounded-full text-xs"
-                            >
-                              {team1Player1.skillCategory}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-lg font-medium text-foreground">
-                            {team1Player2?.name || "Unknown"}
-                          </p>
-                          {team1Player2 && (
-                            <Badge
-                              variant={getSkillBadgeVariant(team1Player2.skillCategory)}
-                              className="rounded-full text-xs"
-                            >
-                              {team1Player2.skillCategory}
-                            </Badge>
-                          )}
-                        </div>
+                        <p className="text-lg font-medium text-foreground text-center">
+                          {team1Player1?.name || "Unknown"}
+                        </p>
+                        <p className="text-lg font-medium text-foreground text-center">
+                          {team1Player2?.name || "Unknown"}
+                        </p>
                       </div>
                     </div>
 
@@ -199,32 +161,12 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 2
                       </p>
                       <div className="space-y-2">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-lg font-medium text-foreground">
-                            {team2Player1?.name || "Unknown"}
-                          </p>
-                          {team2Player1 && (
-                            <Badge
-                              variant={getSkillBadgeVariant(team2Player1.skillCategory)}
-                              className="rounded-full text-xs"
-                            >
-                              {team2Player1.skillCategory}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-lg font-medium text-foreground">
-                            {team2Player2?.name || "Unknown"}
-                          </p>
-                          {team2Player2 && (
-                            <Badge
-                              variant={getSkillBadgeVariant(team2Player2.skillCategory)}
-                              className="rounded-full text-xs"
-                            >
-                              {team2Player2.skillCategory}
-                            </Badge>
-                          )}
-                        </div>
+                        <p className="text-lg font-medium text-foreground text-center">
+                          {team2Player1?.name || "Unknown"}
+                        </p>
+                        <p className="text-lg font-medium text-foreground text-center">
+                          {team2Player2?.name || "Unknown"}
+                        </p>
                       </div>
                     </div>
                   </div>
