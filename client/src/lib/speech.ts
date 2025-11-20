@@ -11,7 +11,7 @@ export function speak(text: string): Promise<void> {
 
     const utterance = new SpeechSynthesisUtterance(text);
     
-    utterance.rate = 0.75;
+    utterance.rate = 0.65;
     utterance.pitch = 1;
     utterance.volume = 1;
     

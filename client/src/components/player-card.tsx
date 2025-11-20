@@ -1,12 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { MoreVertical, Trash2 } from "lucide-react";
+import { MoreVertical, Trash2, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -23,6 +22,7 @@ import {
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import EditPlayerDialog from "./edit-player-dialog";
 import type { Player } from "@shared/schema";
 
 interface PlayerCardProps {
@@ -40,6 +40,7 @@ const statusOptions = ["Queue", "Playing", "Break"] as const;
 
 export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const { toast } = useToast();
 
   const updateStatusMutation = useMutation({
@@ -48,6 +49,27 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+    },
+  });
+
+  const updatePlayerMutation = useMutation({
+    mutationFn: async (data: { name: string; skillCategory: string }) => {
+      return await apiRequest("PATCH", `/api/players/${player.id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      toast({
+        title: "Player updated",
+        description: "Player information has been updated successfully.",
+      });
+      setShowEditDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update player. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -94,7 +116,13 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="rounded-xl">
-            <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+            <DropdownMenuItem
+              onClick={() => setShowEditDialog(true)}
+              data-testid="menu-item-edit"
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Edit Player
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             {statusOptions.map((status) => (
               <DropdownMenuItem
@@ -118,6 +146,14 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <EditPlayerDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        player={player}
+        onSubmit={(data) => updatePlayerMutation.mutate(data)}
+        isPending={updatePlayerMutation.isPending}
+      />
 
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent className="rounded-3xl">
