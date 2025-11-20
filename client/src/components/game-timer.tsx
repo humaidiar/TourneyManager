@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 const PRESET_DURATIONS = [5, 10, 15, 20];
 
 export default function GameTimer() {
-  const [duration, setDuration] = useState(10 * 60); // Default 10 minutes in seconds
-  const [timeRemaining, setTimeRemaining] = useState(10 * 60);
+  const [duration, setDuration] = useState(0); // Default 0 minutes
+  const [timeRemaining, setTimeRemaining] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -204,8 +204,14 @@ export default function GameTimer() {
     }
   }, [isDragging]);
 
-  const progress = duration > 0 ? (timeRemaining / duration) * 100 : 0;
   const circumference = 2 * Math.PI * 90; // radius = 90
+  
+  // Both setting and running use the same 60-minute scale so arc stays proportional
+  // When setting: duration / 3600 shows portion of circle filled
+  // When running: timeRemaining / 3600 shows same arc shrinking
+  const maxSeconds = 60 * 60; // 60 minutes
+  const displayValue = isRunning ? timeRemaining : duration;
+  const progress = maxSeconds > 0 ? (displayValue / maxSeconds) * 100 : 0;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
   return (
