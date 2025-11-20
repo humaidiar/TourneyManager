@@ -64,22 +64,27 @@ export default function SessionsList() {
             {sessions.map((session) => (
               <div key={session.id}>
                 <Card 
-                  className="relative rounded-2xl hover-elevate active-elevate-2 transition-all cursor-pointer h-full"
+                  className="relative rounded-2xl hover-elevate active-elevate-2 transition-all h-full"
                   data-testid={`card-session-${session.id}`}
-                  onClick={() => setLocation(`/sessions/${session.id}`)}
                 >
-                  <EditSessionDialog session={session} />
-                  <CardHeader className="pb-3 pr-14">
-                    <CardTitle className="text-xl font-semibold">
-                      {session.name}
-                    </CardTitle>
-                    {session.description && (
-                      <CardDescription className="line-clamp-2">
-                        {session.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="space-y-3">
+                  <div className="absolute top-4 right-4 z-10">
+                    <EditSessionDialog session={session} />
+                  </div>
+                  <div 
+                    className="cursor-pointer"
+                    onClick={() => setLocation(`/sessions/${session.id}`)}
+                  >
+                    <CardHeader className="pb-3 pr-14">
+                      <CardTitle className="text-xl font-semibold">
+                        {session.name}
+                      </CardTitle>
+                      {session.description && (
+                        <CardDescription className="line-clamp-2">
+                          {session.description}
+                        </CardDescription>
+                      )}
+                    </CardHeader>
+                    <CardContent className="space-y-3">
                     {session.location && (
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <MapPin className="w-4 h-4" />
@@ -100,7 +105,8 @@ export default function SessionsList() {
                         </span>
                       </div>
                     )}
-                  </CardContent>
+                    </CardContent>
+                  </div>
                 </Card>
               </div>
             ))}

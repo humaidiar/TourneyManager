@@ -121,9 +121,12 @@ export default function EditSessionDialog({ session, onDeleted }: EditSessionDia
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-full absolute top-4 right-4 z-10"
+            className="rounded-full"
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => {
               e.stopPropagation();
             }}
             data-testid={`button-edit-session-${session.id}`}
