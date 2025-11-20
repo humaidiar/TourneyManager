@@ -77,9 +77,7 @@ export default function MatchGeneration({
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="balanced">Balanced</SelectItem>
-              <SelectItem value="non-balanced">Non-Balanced</SelectItem>
               <SelectItem value="gender-based">Gender-Based</SelectItem>
-              <SelectItem value="gender-specific">Gender-Specific</SelectItem>
               <SelectItem value="random">Random</SelectItem>
             </SelectContent>
           </Select>
