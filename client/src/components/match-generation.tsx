@@ -1,13 +1,9 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Shuffle, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import type { Session, Player, Court, MatchMode } from "@shared/schema";
 
 interface MatchGenerationProps {
@@ -32,33 +28,9 @@ export default function MatchGeneration({
   courts,
 }: MatchGenerationProps) {
   const [selectedMode, setSelectedMode] = useState<MatchMode>(session.defaultMatchMode as MatchMode || "balanced");
-  const { toast } = useToast();
 
   const activeCourts = courts.filter((c) => c.isActive);
   const availablePlayers = players.filter((p) => p.status === "Queue");
-
-  const generateMutation = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", `/api/sessions/${sessionId}/generate-matches`, {
-        mode: selectedMode,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
-      toast({
-        title: "Matches generated",
-        description: "New matches have been created successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Generation failed",
-        description: error.message || "Failed to generate matches. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
 
   const canGenerate = activeCourts.length > 0 && availablePlayers.length >= 4;
   const maxMatches = Math.min(activeCourts.length, Math.floor(availablePlayers.length / 4));
@@ -98,24 +70,6 @@ export default function MatchGeneration({
             </div>
           </AlertDescription>
         </Alert>
-
-        <Button
-          onClick={() => generateMutation.mutate()}
-          disabled={!canGenerate || generateMutation.isPending}
-          className="w-full rounded-full"
-          data-testid="button-generate-matches"
-        >
-          <Shuffle className="w-4 h-4 mr-2" />
-          {generateMutation.isPending ? "Generating..." : "Generate Matches"}
-        </Button>
-
-        {!canGenerate && (
-          <p className="text-sm text-muted-foreground text-center">
-            {activeCourts.length === 0
-              ? "No active courts available"
-              : "Need at least 4 players in queue"}
-          </p>
-        )}
       </CardContent>
     </Card>
   );
