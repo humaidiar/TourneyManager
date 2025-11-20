@@ -118,15 +118,6 @@ export default function SessionsList() {
                 <Users className="w-10 h-10 text-muted-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-2">No sessions yet</h3>
-              <p className="text-muted-foreground mb-6">
-                Create your first session to start organizing badminton games
-              </p>
-              <Link href="/sessions/new">
-                <Button className="rounded-full px-6" data-testid="button-create-first-session">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Session
-                </Button>
-              </Link>
             </div>
           </div>
         )}
