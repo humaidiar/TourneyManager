@@ -62,14 +62,14 @@ export default function SessionsList() {
         ) : sessions && sessions.length > 0 ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sessions.map((session) => (
-              <div key={session.id} className="relative">
+              <div key={session.id}>
                 <Card 
-                  className="rounded-2xl hover-elevate active-elevate-2 transition-all cursor-pointer h-full"
+                  className="relative rounded-2xl hover-elevate active-elevate-2 transition-all cursor-pointer h-full"
                   data-testid={`card-session-${session.id}`}
                   onClick={() => setLocation(`/sessions/${session.id}`)}
                 >
                   <EditSessionDialog session={session} />
-                  <CardHeader className="pb-3 pr-12">
+                  <CardHeader className="pb-3 pr-14">
                     <CardTitle className="text-xl font-semibold">
                       {session.name}
                     </CardTitle>
