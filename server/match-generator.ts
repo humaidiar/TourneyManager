@@ -85,8 +85,9 @@ function balancedTeams(players: Player[]): { team1: Team; team2: Team } {
 function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | null {
   const males = players.filter((p) => p.gender === "Male");
   const females = players.filter((p) => p.gender === "Female");
+  const others = players.filter((p) => p.gender === "Other");
 
-  // Prioritize mixed doubles: 2 males + 2 females
+  // Priority 1: Mixed doubles (2M + 2F)
   if (males.length === 2 && females.length === 2) {
     return {
       team1: { player1: males[0], player2: females[0] },
@@ -94,15 +95,7 @@ function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | nul
     };
   }
 
-  // All-female matches if we have 4 females
-  if (females.length === 4) {
-    return {
-      team1: { player1: females[0], player2: females[1] },
-      team2: { player1: females[2], player2: females[3] },
-    };
-  }
-
-  // All-male matches if we have 4 males
+  // Priority 2: Same-gender matches (4M or 4F)
   if (males.length === 4) {
     return {
       team1: { player1: males[0], player2: males[1] },
@@ -110,15 +103,14 @@ function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | nul
     };
   }
 
-  // Handle 3 females + 1 male: Create F+F vs F+M
-  if (females.length === 3 && males.length === 1) {
+  if (females.length === 4) {
     return {
       team1: { player1: females[0], player2: females[1] },
-      team2: { player1: females[2], player2: males[0] },
+      team2: { player1: females[2], player2: females[3] },
     };
   }
 
-  // Handle 3 males + 1 female: Create M+M vs M+F
+  // Priority 3: Majority gender with one minority (3M+1F or 3F+1M)
   if (males.length === 3 && females.length === 1) {
     return {
       team1: { player1: males[0], player2: males[1] },
@@ -126,7 +118,95 @@ function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | nul
     };
   }
 
-  // Fall back to random for other combinations
+  if (females.length === 3 && males.length === 1) {
+    return {
+      team1: { player1: females[0], player2: females[1] },
+      team2: { player1: females[2], player2: males[0] },
+    };
+  }
+
+  // Priority 4: Handle "Other" gender players as wildcards
+  if (others.length > 0) {
+    // 4 Others: Pair them together
+    if (others.length === 4) {
+      return {
+        team1: { player1: others[0], player2: others[1] },
+        team2: { player1: others[2], player2: others[3] },
+      };
+    }
+
+    // 3 Others + 1 Male/Female: Pair Others together, minority with an Other
+    if (others.length === 3 && males.length === 1) {
+      return {
+        team1: { player1: others[0], player2: others[1] },
+        team2: { player1: others[2], player2: males[0] },
+      };
+    }
+
+    if (others.length === 3 && females.length === 1) {
+      return {
+        team1: { player1: others[0], player2: others[1] },
+        team2: { player1: others[2], player2: females[0] },
+      };
+    }
+
+    // 2 Others + 2 Males/Females: Pair each gender with an Other
+    if (others.length === 2 && males.length === 2) {
+      return {
+        team1: { player1: males[0], player2: others[0] },
+        team2: { player1: males[1], player2: others[1] },
+      };
+    }
+
+    if (others.length === 2 && females.length === 2) {
+      return {
+        team1: { player1: females[0], player2: others[0] },
+        team2: { player1: females[1], player2: others[1] },
+      };
+    }
+
+    // 2 Others + 1 Male + 1 Female: Create balanced mixed teams with Others
+    if (others.length === 2 && males.length === 1 && females.length === 1) {
+      return {
+        team1: { player1: males[0], player2: others[0] },
+        team2: { player1: females[0], player2: others[1] },
+      };
+    }
+
+    // 1 Other + 3 Males: Pair Males together, one Male with Other
+    if (others.length === 1 && males.length === 3) {
+      return {
+        team1: { player1: males[0], player2: males[1] },
+        team2: { player1: males[2], player2: others[0] },
+      };
+    }
+
+    // 1 Other + 3 Females: Pair Females together, one Female with Other
+    if (others.length === 1 && females.length === 3) {
+      return {
+        team1: { player1: females[0], player2: females[1] },
+        team2: { player1: females[2], player2: others[0] },
+      };
+    }
+
+    // 1 Other + 2 Males + 1 Female: Create balanced mixed with Other as wildcard
+    if (others.length === 1 && males.length === 2 && females.length === 1) {
+      return {
+        team1: { player1: males[0], player2: females[0] },
+        team2: { player1: males[1], player2: others[0] },
+      };
+    }
+
+    // 1 Other + 2 Females + 1 Male: Create balanced mixed with Other as wildcard
+    if (others.length === 1 && females.length === 2 && males.length === 1) {
+      return {
+        team1: { player1: females[0], player2: males[0] },
+        team2: { player1: females[1], player2: others[0] },
+      };
+    }
+  }
+
+  // Fallback: This should never be reached with valid 4-player input
   return randomTeams(players);
 }
 
