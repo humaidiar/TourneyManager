@@ -68,18 +68,12 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
   return (
     <>
       <div
-        className="group flex items-center justify-between p-4 rounded-xl border bg-card hover-elevate transition-all"
+        className="group flex items-center justify-between p-4 rounded-xl border bg-muted/50 hover-elevate transition-all"
         data-testid={`card-player-${player.id}`}
       >
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2">
             <h4 className="font-medium text-sm truncate">{player.name}</h4>
-            <Badge
-              variant="outline"
-              className={`rounded-full text-xs font-semibold border ${skillColors[player.skillCategory as keyof typeof skillColors]}`}
-            >
-              {player.skillCategory}
-            </Badge>
           </div>
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span>{player.gender}</span>
