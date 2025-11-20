@@ -63,7 +63,7 @@ export default function GameTimer() {
       await audioContextRef.current.resume();
     }
 
-    const beep = (frequency: number, duration: number, delay: number) => {
+    const playTone = (frequency: number, duration: number, delay: number, volume: number = 0.25) => {
       setTimeout(() => {
         if (!audioContextRef.current) return;
         
@@ -74,10 +74,10 @@ export default function GameTimer() {
         gainNode.connect(audioContextRef.current.destination);
         
         oscillator.frequency.value = frequency;
-        oscillator.type = 'square';
+        oscillator.type = 'sine'; // Sine wave for pleasant, bell-like tone
         
         const now = audioContextRef.current.currentTime;
-        gainNode.gain.setValueAtTime(0.3, now);
+        gainNode.gain.setValueAtTime(volume, now);
         gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
         
         oscillator.start(now);
@@ -85,10 +85,11 @@ export default function GameTimer() {
       }, delay);
     };
 
-    // Play alarm sequence: 3 beeps
-    beep(880, 0.2, 0);      // First beep
-    beep(880, 0.2, 300);    // Second beep
-    beep(880, 0.3, 600);    // Third beep (longer)
+    // Rising alert sequence: A4 → C#5 → E5 → A5 (ascending musical pattern)
+    playTone(440, 0.25, 0, 0.2);      // A4 - gentle start
+    playTone(554, 0.25, 200, 0.25);   // C#5 - rising
+    playTone(659, 0.3, 400, 0.3);     // E5 - getting louder
+    playTone(880, 0.4, 650, 0.35);    // A5 - final alert tone (louder & longer)
   };
 
   const handleStart = async () => {
