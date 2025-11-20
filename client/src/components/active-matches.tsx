@@ -1,10 +1,12 @@
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, Shuffle as ShuffleIcon } from "lucide-react";
+import { CheckCircle2, Shuffle as ShuffleIcon, Volume2, VolumeX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { speak, stopSpeaking, isSpeechSupported } from "@/lib/speech";
 import type { Match, Player, Court, Session } from "@shared/schema";
 
 interface ActiveMatchesProps {
@@ -17,9 +19,16 @@ interface ActiveMatchesProps {
 
 export default function ActiveMatches({ sessionId, session, matches, players, courts }: ActiveMatchesProps) {
   const { toast } = useToast();
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  
   const pendingMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
   const queuePlayers = players.filter((p) => p.status === "Queue");
   const activeCourts = courts.filter((c) => c.isActive);
+
+  useEffect(() => {
+    setSpeechSupported(isSpeechSupported());
+  }, []);
 
   const completeAllMutation = useMutation({
     mutationFn: async () => {
@@ -72,6 +81,47 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
     return players.find((p) => p.id === playerId);
   };
 
+  const announceMatches = async () => {
+    if (isSpeaking) {
+      stopSpeaking();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (pendingMatches.length === 0) {
+      toast({
+        title: "No matches to announce",
+        description: "Generate some matches first.",
+      });
+      return;
+    }
+
+    setIsSpeaking(true);
+    
+    try {
+      const announcementText = pendingMatches
+        .map((match) => {
+          const p1 = getPlayer(match.team1Player1Id);
+          const p2 = getPlayer(match.team1Player2Id);
+          const p3 = getPlayer(match.team2Player1Id);
+          const p4 = getPlayer(match.team2Player2Id);
+          
+          return `${match.courtName}: ${p1?.name || "Unknown"} and ${p2?.name || "Unknown"} versus ${p3?.name || "Unknown"} and ${p4?.name || "Unknown"}`;
+        })
+        .join(". ");
+
+      await speak(announcementText);
+      setIsSpeaking(false);
+    } catch (error) {
+      setIsSpeaking(false);
+      toast({
+        title: "Announcement failed",
+        description: "Could not announce matches. Please check your browser supports speech.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Section Header */}
@@ -84,29 +134,52 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
             </Badge>
           )}
         </div>
-        {pendingMatches.length > 0 ? (
-          <Button
-            onClick={() => completeAllMutation.mutate()}
-            disabled={completeAllMutation.isPending}
-            className="rounded-full"
-            variant="default"
-            data-testid="button-complete-all-matches"
-          >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
-            {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
-          </Button>
-        ) : (
-          <Button
-            onClick={() => generateMatchesMutation.mutate()}
-            disabled={!canGenerateMatches || generateMatchesMutation.isPending}
-            className="rounded-full"
-            variant="default"
-            data-testid="button-generate-matches-quick"
-          >
-            <ShuffleIcon className="w-4 h-4 mr-2" />
-            {generateMatchesMutation.isPending ? "Generating..." : "Generate Matches"}
-          </Button>
-        )}
+        <div className="flex items-center gap-3">
+          {speechSupported && pendingMatches.length > 0 && (
+            <Button
+              onClick={announceMatches}
+              disabled={false}
+              className="rounded-full"
+              variant="outline"
+              data-testid="button-announce-matches"
+            >
+              {isSpeaking ? (
+                <>
+                  <VolumeX className="w-4 h-4 mr-2" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-4 h-4 mr-2" />
+                  Announce
+                </>
+              )}
+            </Button>
+          )}
+          {pendingMatches.length > 0 ? (
+            <Button
+              onClick={() => completeAllMutation.mutate()}
+              disabled={completeAllMutation.isPending}
+              className="rounded-full"
+              variant="default"
+              data-testid="button-complete-all-matches"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
+            </Button>
+          ) : (
+            <Button
+              onClick={() => generateMatchesMutation.mutate()}
+              disabled={!canGenerateMatches || generateMatchesMutation.isPending}
+              className="rounded-full"
+              variant="default"
+              data-testid="button-generate-matches-quick"
+            >
+              <ShuffleIcon className="w-4 h-4 mr-2" />
+              {generateMatchesMutation.isPending ? "Generating..." : "Generate Matches"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Matches Grid */}
