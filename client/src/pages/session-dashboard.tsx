@@ -9,6 +9,7 @@ import MatchGeneration from "@/components/match-generation";
 import ActiveMatches from "@/components/active-matches";
 import CourtConfiguration from "@/components/court-configuration";
 import SessionActions from "@/components/session-actions";
+import GameTimer from "@/components/game-timer";
 import type { Session, Player, Court, Match } from "@shared/schema";
 
 export default function SessionDashboard() {
@@ -121,6 +122,11 @@ export default function SessionDashboard() {
             players={players} 
             courts={courts}
           />
+        </div>
+
+        {/* Game Timer */}
+        <div className="w-full mb-8">
+          <GameTimer />
         </div>
 
         {/* 3 Column Grid */}
