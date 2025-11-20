@@ -178,6 +178,11 @@ Currently, the application does not implement authentication or user accounts. A
 - Edit session functionality with pencil icon in top-right of session cards (name, description, location)
 - Session delete functionality with confirmation dialog
 - "Complete All Matches" button for batch match completion - returns all players to queue with one click
+- Standalone Game Timer with interactive circular slider - drag around circle to set 1-60 minute duration
+  - Visual feedback during drag (thicker stroke, faster transitions)
+  - Locked when timer is running
+  - 3-beep alarm sound using Web Audio API when timer completes
+  - Positioned below Active Matches in session dashboard
 
 ### Testing & Quality
 - All E2E tests passing with comprehensive coverage:
