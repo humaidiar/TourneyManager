@@ -1,10 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2, XCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
 import type { Match, Player } from "@shared/schema";
 
 interface ActiveMatchesProps {
@@ -14,120 +9,163 @@ interface ActiveMatchesProps {
 }
 
 export default function ActiveMatches({ sessionId, matches, players }: ActiveMatchesProps) {
-  const { toast } = useToast();
-
   const pendingMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
 
-  const getPlayerName = (playerId: string) => {
-    const player = players.find((p) => p.id === playerId);
-    return player?.name || "Unknown";
+  const getPlayer = (playerId: string) => {
+    return players.find((p) => p.id === playerId);
   };
 
-  const completeMutation = useMutation({
-    mutationFn: async (matchId: string) => {
-      return await apiRequest("PATCH", `/api/matches/${matchId}`, { status: "completed" });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
-      toast({
-        title: "Match completed",
-        description: "Match has been marked as completed.",
-      });
-    },
-  });
-
-  const cancelMutation = useMutation({
-    mutationFn: async (matchId: string) => {
-      return await apiRequest("DELETE", `/api/matches/${matchId}`, {});
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
-      toast({
-        title: "Match cancelled",
-        description: "Match has been cancelled.",
-      });
-    },
-  });
+  const getSkillBadgeVariant = (skill: string) => {
+    switch (skill) {
+      case "Pro":
+        return "default";
+      case "Intermediate":
+        return "secondary";
+      case "Starter":
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
 
   return (
-    <Card className="rounded-2xl">
-      <CardHeader>
-        <CardTitle className="text-lg font-semibold">Active Matches</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {pendingMatches.length > 0 ? (
-          <div className="space-y-4">
-            {pendingMatches.map((match) => (
-              <div
+    <div className="space-y-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-foreground">Active Matches</h2>
+        {pendingMatches.length > 0 && (
+          <Badge variant="secondary" className="rounded-full text-base px-4 py-1">
+            {pendingMatches.length} {pendingMatches.length === 1 ? "match" : "matches"}
+          </Badge>
+        )}
+      </div>
+
+      {/* Matches Grid */}
+      {pendingMatches.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {pendingMatches.map((match) => {
+            const team1Player1 = getPlayer(match.team1Player1Id);
+            const team1Player2 = getPlayer(match.team1Player2Id);
+            const team2Player1 = getPlayer(match.team2Player1Id);
+            const team2Player2 = getPlayer(match.team2Player2Id);
+
+            return (
+              <Card
                 key={match.id}
-                className="p-4 rounded-xl border bg-card space-y-3"
+                className="rounded-2xl overflow-hidden hover-elevate"
                 data-testid={`card-match-${match.id}`}
               >
-                <div className="flex items-center justify-between">
-                  <Badge className="rounded-full bg-primary text-primary-foreground">
-                    {match.courtName}
-                  </Badge>
-                  <Badge variant="outline" className="rounded-full">
-                    {match.status}
-                  </Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 p-2 rounded-lg bg-muted/50">
-                      <p className="text-xs font-medium mb-1">Team 1</p>
-                      <p className="text-sm">{getPlayerName(match.team1Player1Id)}</p>
-                      <p className="text-sm">{getPlayerName(match.team1Player2Id)}</p>
+                <CardHeader className="pb-4 bg-primary/5">
+                  <div className="flex items-center justify-between gap-2">
+                    <CardTitle className="text-2xl font-bold text-foreground">
+                      {match.courtName}
+                    </CardTitle>
+                    <Badge variant="outline" className="rounded-full">
+                      {match.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    {/* Team 1 */}
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Team 1
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-lg font-medium text-foreground">
+                            {team1Player1?.name || "Unknown"}
+                          </p>
+                          {team1Player1 && (
+                            <Badge
+                              variant={getSkillBadgeVariant(team1Player1.skillCategory)}
+                              className="rounded-full text-xs"
+                            >
+                              {team1Player1.skillCategory}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-lg font-medium text-foreground">
+                            {team1Player2?.name || "Unknown"}
+                          </p>
+                          {team1Player2 && (
+                            <Badge
+                              variant={getSkillBadgeVariant(team1Player2.skillCategory)}
+                              className="rounded-full text-xs"
+                            >
+                              {team1Player2.skillCategory}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-muted-foreground font-semibold">vs</span>
-                    <div className="flex-1 p-2 rounded-lg bg-muted/50">
-                      <p className="text-xs font-medium mb-1">Team 2</p>
-                      <p className="text-sm">{getPlayerName(match.team2Player1Id)}</p>
-                      <p className="text-sm">{getPlayerName(match.team2Player2Id)}</p>
+
+                    {/* VS Divider */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-px bg-border" />
+                      <span className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                        vs
+                      </span>
+                      <div className="flex-1 h-px bg-border" />
+                    </div>
+
+                    {/* Team 2 */}
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Team 2
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-lg font-medium text-foreground">
+                            {team2Player1?.name || "Unknown"}
+                          </p>
+                          {team2Player1 && (
+                            <Badge
+                              variant={getSkillBadgeVariant(team2Player1.skillCategory)}
+                              className="rounded-full text-xs"
+                            >
+                              {team2Player1.skillCategory}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-lg font-medium text-foreground">
+                            {team2Player2?.name || "Unknown"}
+                          </p>
+                          {team2Player2 && (
+                            <Badge
+                              variant={getSkillBadgeVariant(team2Player2.skillCategory)}
+                              className="rounded-full text-xs"
+                            >
+                              {team2Player2.skillCategory}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => cancelMutation.mutate(match.id)}
-                    disabled={cancelMutation.isPending}
-                    className="flex-1 rounded-full"
-                    data-testid={`button-cancel-match-${match.id}`}
-                  >
-                    <XCircle className="w-4 h-4 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => completeMutation.mutate(match.id)}
-                    disabled={completeMutation.isPending}
-                    className="flex-1 rounded-full"
-                    data-testid={`button-complete-match-${match.id}`}
-                  >
-                    <CheckCircle2 className="w-4 h-4 mr-1" />
-                    Complete
-                  </Button>
-                </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <Card className="rounded-2xl">
+          <CardContent className="p-12">
+            <div className="text-center">
+              <div className="rounded-full bg-muted w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                <Shuffle className="w-10 h-10 text-muted-foreground" />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="rounded-full bg-muted w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <Shuffle className="w-8 h-8 text-muted-foreground" />
+              <p className="text-lg text-muted-foreground">
+                No active matches. Generate matches to get started.
+              </p>
             </div>
-            <p className="text-sm text-muted-foreground">
-              No active matches. Generate matches to get started.
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
