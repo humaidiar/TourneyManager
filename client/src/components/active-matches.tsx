@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { speak, stopSpeaking, isSpeechSupported } from "@/lib/speech";
+import SwapPlayerDialog from "./swap-player-dialog";
 import type { Match, Player, Court, Session } from "@shared/schema";
 
 interface ActiveMatchesProps {
@@ -21,6 +22,8 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
   const { toast } = useToast();
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [showSwapDialog, setShowSwapDialog] = useState(false);
+  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
   
   const pendingMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
   const queuePlayers = players.filter((p) => p.status === "Queue");
@@ -74,6 +77,42 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
       });
     },
   });
+
+  const swapPlayerMutation = useMutation({
+    mutationFn: async (data: { player1Id: string; player2Id: string }) => {
+      return await apiRequest("POST", `/api/players/swap`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      toast({
+        title: "Players swapped",
+        description: "Players have been swapped successfully.",
+      });
+      setShowSwapDialog(false);
+      setSelectedPlayer(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to swap players. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePlayerClick = (player: Player | undefined) => {
+    if (!player) return;
+    setSelectedPlayer(player);
+    setShowSwapDialog(true);
+  };
+
+  const handleSwap = (targetPlayerId: string) => {
+    if (!selectedPlayer) return;
+    swapPlayerMutation.mutate({
+      player1Id: selectedPlayer.id,
+      player2Id: targetPlayerId,
+    });
+  };
 
   const canGenerateMatches = queuePlayers.length >= 4 && activeCourts.length > 0;
 
@@ -210,12 +249,20 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 1
                       </p>
                       <div className="space-y-2">
-                        <p className="text-xl font-bold text-foreground">
+                        <button
+                          onClick={() => handlePlayerClick(team1Player1)}
+                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
+                          data-testid={`button-swap-player-${team1Player1?.id}`}
+                        >
                           {team1Player1?.name || "Unknown"}
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
+                        </button>
+                        <button
+                          onClick={() => handlePlayerClick(team1Player2)}
+                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
+                          data-testid={`button-swap-player-${team1Player2?.id}`}
+                        >
                           {team1Player2?.name || "Unknown"}
-                        </p>
+                        </button>
                       </div>
                     </div>
 
@@ -234,12 +281,20 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 2
                       </p>
                       <div className="space-y-2">
-                        <p className="text-xl font-bold text-foreground">
+                        <button
+                          onClick={() => handlePlayerClick(team2Player1)}
+                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
+                          data-testid={`button-swap-player-${team2Player1?.id}`}
+                        >
                           {team2Player1?.name || "Unknown"}
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
+                        </button>
+                        <button
+                          onClick={() => handlePlayerClick(team2Player2)}
+                          className="text-xl font-bold text-foreground hover:text-primary transition-colors cursor-pointer text-left w-full"
+                          data-testid={`button-swap-player-${team2Player2?.id}`}
+                        >
                           {team2Player2?.name || "Unknown"}
-                        </p>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -261,6 +316,18 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Swap Player Dialog */}
+      {selectedPlayer && (
+        <SwapPlayerDialog
+          open={showSwapDialog}
+          onOpenChange={setShowSwapDialog}
+          currentPlayer={selectedPlayer}
+          availablePlayers={queuePlayers}
+          onSwap={handleSwap}
+          isPending={swapPlayerMutation.isPending}
+        />
       )}
     </div>
   );
