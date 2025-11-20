@@ -17,6 +17,7 @@ interface PlayerManagementProps {
   queuePlayers: Player[];
   playingPlayers: Player[];
   breakPlayers: Player[];
+  hasActiveMatches: boolean;
 }
 
 export default function PlayerManagement({
@@ -25,6 +26,7 @@ export default function PlayerManagement({
   queuePlayers,
   playingPlayers,
   breakPlayers,
+  hasActiveMatches,
 }: PlayerManagementProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { toast } = useToast();
@@ -85,7 +87,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {queuePlayers.length > 0 ? (
                   queuePlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} hasActiveMatches={hasActiveMatches} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">
@@ -100,7 +102,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {playingPlayers.length > 0 ? (
                   playingPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} hasActiveMatches={hasActiveMatches} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">
@@ -114,7 +116,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {breakPlayers.length > 0 ? (
                   breakPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} hasActiveMatches={hasActiveMatches} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">

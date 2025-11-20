@@ -30,6 +30,7 @@ interface PlayerCardProps {
   player: Player;
   sessionId: string;
   allPlayers: Player[];
+  hasActiveMatches: boolean;
 }
 
 const skillColors = {
@@ -40,7 +41,7 @@ const skillColors = {
 
 const statusOptions = ["Queue", "Playing", "Break"] as const;
 
-export default function PlayerCard({ player, sessionId, allPlayers }: PlayerCardProps) {
+export default function PlayerCard({ player, sessionId, allPlayers, hasActiveMatches }: PlayerCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showSwapDialog, setShowSwapDialog] = useState(false);
@@ -174,16 +175,21 @@ export default function PlayerCard({ player, sessionId, allPlayers }: PlayerCard
               Swap with Player
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            {statusOptions.map((status) => (
-              <DropdownMenuItem
-                key={status}
-                onClick={() => updateStatusMutation.mutate(status)}
-                disabled={player.status === status}
-                data-testid={`menu-item-status-${status.toLowerCase()}`}
-              >
-                Move to {status}
-              </DropdownMenuItem>
-            ))}
+            {statusOptions.map((status) => {
+              // Disable "Move to Playing" if there are no active matches
+              const isDisabled = player.status === status || (status === "Playing" && !hasActiveMatches);
+              
+              return (
+                <DropdownMenuItem
+                  key={status}
+                  onClick={() => updateStatusMutation.mutate(status)}
+                  disabled={isDisabled}
+                  data-testid={`menu-item-status-${status.toLowerCase()}`}
+                >
+                  Move to {status}
+                </DropdownMenuItem>
+              );
+            })}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => setShowDeleteDialog(true)}

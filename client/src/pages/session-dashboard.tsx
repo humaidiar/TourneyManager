@@ -77,6 +77,7 @@ export default function SessionDashboard() {
   const queuePlayers = players.filter((p) => p.status === "Queue");
   const playingPlayers = players.filter((p) => p.status === "Playing");
   const breakPlayers = players.filter((p) => p.status === "Break");
+  const hasActiveMatches = matches.some((m) => m.status === "pending" || m.status === "in-progress");
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,6 +133,7 @@ export default function SessionDashboard() {
               queuePlayers={queuePlayers}
               playingPlayers={playingPlayers}
               breakPlayers={breakPlayers}
+              hasActiveMatches={hasActiveMatches}
             />
           </div>
 
