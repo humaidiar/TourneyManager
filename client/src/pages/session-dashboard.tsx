@@ -111,8 +111,13 @@ export default function SessionDashboard() {
 
       {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Top Section - 3 Column Grid */}
-        <div className="grid gap-6 lg:grid-cols-3 mb-8">
+        {/* Top Section - Active Matches */}
+        <div className="w-full mb-8">
+          <ActiveMatches sessionId={sessionId} matches={matches} players={players} />
+        </div>
+
+        {/* 3 Column Grid */}
+        <div className="grid gap-6 lg:grid-cols-3">
           {/* Left Column - Player Management */}
           <div className="lg:col-span-1">
             <PlayerManagement
@@ -138,11 +143,6 @@ export default function SessionDashboard() {
           <div className="lg:col-span-1">
             <CourtConfiguration sessionId={sessionId} session={session} courts={courts} />
           </div>
-        </div>
-
-        {/* Full Width Section - Active Matches */}
-        <div className="w-full">
-          <ActiveMatches sessionId={sessionId} matches={matches} players={players} />
         </div>
       </div>
     </div>
