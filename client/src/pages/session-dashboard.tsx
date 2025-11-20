@@ -113,7 +113,13 @@ export default function SessionDashboard() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Top Section - Active Matches */}
         <div className="w-full mb-8">
-          <ActiveMatches sessionId={sessionId} matches={matches} players={players} />
+          <ActiveMatches 
+            sessionId={sessionId} 
+            session={session}
+            matches={matches} 
+            players={players} 
+            courts={courts}
+          />
         </div>
 
         {/* 3 Column Grid */}

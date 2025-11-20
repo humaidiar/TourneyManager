@@ -1,21 +1,25 @@
 import { useMutation } from "@tanstack/react-query";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Shuffle as ShuffleIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { Match, Player } from "@shared/schema";
+import type { Match, Player, Court, Session } from "@shared/schema";
 
 interface ActiveMatchesProps {
   sessionId: string;
+  session: Session;
   matches: Match[];
   players: Player[];
+  courts: Court[];
 }
 
-export default function ActiveMatches({ sessionId, matches, players }: ActiveMatchesProps) {
+export default function ActiveMatches({ sessionId, session, matches, players, courts }: ActiveMatchesProps) {
   const { toast } = useToast();
   const pendingMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
+  const queuePlayers = players.filter((p) => p.status === "Queue");
+  const activeCourts = courts.filter((c) => c.isActive);
 
   const completeAllMutation = useMutation({
     mutationFn: async () => {
@@ -37,6 +41,32 @@ export default function ActiveMatches({ sessionId, matches, players }: ActiveMat
       });
     },
   });
+
+  const generateMatchesMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/sessions/${sessionId}/generate-matches`, {
+        mode: session.defaultMatchMode || "balanced",
+      });
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      const matchCount = Array.isArray(data) ? data.length : 0;
+      toast({
+        title: "Matches generated",
+        description: `${matchCount} ${matchCount === 1 ? "match" : "matches"} created successfully.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to generate matches. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const canGenerateMatches = queuePlayers.length >= 4 && activeCourts.length > 0;
 
   const getPlayer = (playerId: string) => {
     return players.find((p) => p.id === playerId);
@@ -60,11 +90,13 @@ export default function ActiveMatches({ sessionId, matches, players }: ActiveMat
       {/* Section Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-2xl font-bold text-foreground">Active Matches</h2>
-        {pendingMatches.length > 0 && (
-          <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
+          {pendingMatches.length > 0 && (
             <Badge variant="secondary" className="rounded-full text-base px-4 py-1">
               {pendingMatches.length} {pendingMatches.length === 1 ? "match" : "matches"}
             </Badge>
+          )}
+          {pendingMatches.length > 0 ? (
             <Button
               onClick={() => completeAllMutation.mutate()}
               disabled={completeAllMutation.isPending}
@@ -75,8 +107,19 @@ export default function ActiveMatches({ sessionId, matches, players }: ActiveMat
               <CheckCircle2 className="w-4 h-4 mr-2" />
               {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
             </Button>
-          </div>
-        )}
+          ) : (
+            <Button
+              onClick={() => generateMatchesMutation.mutate()}
+              disabled={!canGenerateMatches || generateMatchesMutation.isPending}
+              className="rounded-full"
+              variant="default"
+              data-testid="button-generate-matches-quick"
+            >
+              <ShuffleIcon className="w-4 h-4 mr-2" />
+              {generateMatchesMutation.isPending ? "Generating..." : "Generate Matches"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Matches Grid */}
