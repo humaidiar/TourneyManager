@@ -137,10 +137,10 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 1
                       </p>
                       <div className="space-y-2">
-                        <p className="text-lg font-medium text-foreground">
+                        <p className="text-lg font-bold text-foreground">
                           {team1Player1?.name || "Unknown"}
                         </p>
-                        <p className="text-lg font-medium text-foreground">
+                        <p className="text-lg font-bold text-foreground">
                           {team1Player2?.name || "Unknown"}
                         </p>
                       </div>
@@ -161,10 +161,10 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
                         Team 2
                       </p>
                       <div className="space-y-2">
-                        <p className="text-lg font-medium text-foreground">
+                        <p className="text-lg font-bold text-foreground">
                           {team2Player1?.name || "Unknown"}
                         </p>
-                        <p className="text-lg font-medium text-foreground">
+                        <p className="text-lg font-bold text-foreground">
                           {team2Player2?.name || "Unknown"}
                         </p>
                       </div>
