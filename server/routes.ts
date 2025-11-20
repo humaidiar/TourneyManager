@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertSessionSchema, insertPlayerSchema, insertCourtSchema, insertMatchSchema } from "@shared/schema";
 import { generateMatches } from "./match-generator";
-import type { MatchMode } from "@shared/schema";
+import type { MatchMode, Match } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // ==================== SESSIONS ====================
@@ -204,6 +204,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Validate status transition is meaningful (different statuses)
       if (player1.status === player2.status) {
         return res.status(400).json({ message: "Cannot swap players with the same status" });
+      }
+
+      // Find and update only ACTIVE matches containing player1
+      const sessionMatches = await storage.getMatches(player1.sessionId);
+      const matchesWithPlayer1 = sessionMatches.filter(
+        (match) =>
+          (match.status === "pending" || match.status === "in-progress") &&
+          (match.team1Player1Id === player1Id ||
+           match.team1Player2Id === player1Id ||
+           match.team2Player1Id === player1Id ||
+           match.team2Player2Id === player1Id)
+      );
+
+      // Replace player1's ID with player2's ID in all matches
+      for (const match of matchesWithPlayer1) {
+        const updates: Partial<Match> = {};
+        
+        if (match.team1Player1Id === player1Id) updates.team1Player1Id = player2Id;
+        if (match.team1Player2Id === player1Id) updates.team1Player2Id = player2Id;
+        if (match.team2Player1Id === player1Id) updates.team2Player1Id = player2Id;
+        if (match.team2Player2Id === player1Id) updates.team2Player2Id = player2Id;
+
+        if (Object.keys(updates).length > 0) {
+          await storage.updateMatch(match.id, updates);
+        }
       }
 
       // Swap their statuses
