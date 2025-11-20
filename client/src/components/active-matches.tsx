@@ -233,7 +233,7 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
             return (
               <Card
                 key={match.id}
-                className="rounded-2xl overflow-hidden hover-elevate"
+                className="rounded-2xl overflow-hidden"
                 data-testid={`card-match-${match.id}`}
               >
                 <CardHeader className="pb-4 bg-primary/5">
