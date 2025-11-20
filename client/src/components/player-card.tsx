@@ -68,7 +68,7 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
   return (
     <>
       <div
-        className="group flex items-center justify-between p-4 rounded-xl border bg-muted/50 hover-elevate transition-all"
+        className="group flex items-center justify-between p-4 rounded-xl border bg-muted/20 hover-elevate transition-all"
         data-testid={`card-player-${player.id}`}
       >
         <div className="flex-1 min-w-0">
