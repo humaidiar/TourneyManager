@@ -138,9 +138,13 @@ export const insertMatchSchema = createInsertSchema(matches).omit({
   generatedAt: true,
 });
 
+// Update schemas for PATCH operations (all fields optional)
+export const updateSessionSchema = insertSessionSchema.partial();
+
 // Types
 export type Session = typeof sessions.$inferSelect;
 export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type UpdateSession = z.infer<typeof updateSessionSchema>;
 
 export type Player = typeof players.$inferSelect;
 export type InsertPlayer = z.infer<typeof insertPlayerSchema>;

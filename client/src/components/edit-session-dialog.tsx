@@ -35,10 +35,10 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { insertSessionSchema, type Session } from "@shared/schema";
+import { updateSessionSchema, type Session } from "@shared/schema";
 import type { z } from "zod";
 
-type SessionFormData = z.infer<typeof insertSessionSchema>;
+type SessionFormData = z.infer<typeof updateSessionSchema>;
 
 interface EditSessionDialogProps {
   session: Session;
@@ -51,13 +51,11 @@ export default function EditSessionDialog({ session, onDeleted }: EditSessionDia
   const { toast } = useToast();
 
   const form = useForm<SessionFormData>({
-    resolver: zodResolver(insertSessionSchema),
+    resolver: zodResolver(updateSessionSchema),
     defaultValues: {
       name: session.name,
       description: session.description || "",
       location: session.location || "",
-      defaultCourts: session.defaultCourts,
-      defaultMatchMode: session.defaultMatchMode,
     },
   });
 
