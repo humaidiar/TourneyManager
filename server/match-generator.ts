@@ -56,12 +56,8 @@ function createTeams(
   switch (mode) {
     case "balanced":
       return balancedTeams(fourPlayers);
-    case "non-balanced":
-      return nonBalancedTeams(fourPlayers);
     case "gender-based":
       return genderBasedTeams(fourPlayers);
-    case "gender-specific":
-      return genderSpecificTeams(fourPlayers);
     case "random":
       return randomTeams(fourPlayers);
     default:
@@ -86,22 +82,6 @@ function balancedTeams(players: Player[]): { team1: Team; team2: Team } {
   };
 }
 
-function nonBalancedTeams(players: Player[]): { team1: Team; team2: Team } {
-  // Group similar skill levels
-  const skillValue = (p: Player) => {
-    if (p.skillCategory === "Starter") return 0;
-    if (p.skillCategory === "Intermediate") return 1;
-    return 2;
-  };
-
-  const sorted = [...players].sort((a, b) => skillValue(b) - skillValue(a));
-
-  return {
-    team1: { player1: sorted[0], player2: sorted[1] },
-    team2: { player1: sorted[2], player2: sorted[3] },
-  };
-}
-
 function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | null {
   // Ensure mixed doubles: 2 males + 2 females
   const males = players.filter((p) => p.gender === "Male");
@@ -116,29 +96,6 @@ function genderBasedTeams(players: Player[]): { team1: Team; team2: Team } | nul
     team1: { player1: males[0], player2: females[0] },
     team2: { player1: males[1], player2: females[1] },
   };
-}
-
-function genderSpecificTeams(players: Player[]): { team1: Team; team2: Team } | null {
-  // Try to create all-male or all-female teams
-  const males = players.filter((p) => p.gender === "Male");
-  const females = players.filter((p) => p.gender === "Female");
-
-  if (males.length >= 4) {
-    return {
-      team1: { player1: males[0], player2: males[1] },
-      team2: { player1: males[2], player2: males[3] },
-    };
-  }
-
-  if (females.length >= 4) {
-    return {
-      team1: { player1: females[0], player2: females[1] },
-      team2: { player1: females[2], player2: females[3] },
-    };
-  }
-
-  // Fall back to random
-  return randomTeams(players);
 }
 
 function randomTeams(players: Player[]): { team1: Team; team2: Team } {
