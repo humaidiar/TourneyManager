@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { MoreVertical, Trash2, Pencil } from "lucide-react";
+import { MoreVertical, Trash2, Pencil, ArrowLeftRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,11 +23,13 @@ import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import EditPlayerDialog from "./edit-player-dialog";
+import SwapPlayerDialog from "./swap-player-dialog";
 import type { Player } from "@shared/schema";
 
 interface PlayerCardProps {
   player: Player;
   sessionId: string;
+  allPlayers: Player[];
 }
 
 const skillColors = {
@@ -38,9 +40,10 @@ const skillColors = {
 
 const statusOptions = ["Queue", "Playing", "Break"] as const;
 
-export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
+export default function PlayerCard({ player, sessionId, allPlayers }: PlayerCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showSwapDialog, setShowSwapDialog] = useState(false);
   const { toast } = useToast();
 
   const updateStatusMutation = useMutation({
@@ -87,6 +90,46 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
     },
   });
 
+  const swapPlayerMutation = useMutation({
+    mutationFn: async (data: { player1Id: string; player2Id: string }) => {
+      return await apiRequest("POST", `/api/players/swap`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      toast({
+        title: "Players swapped",
+        description: "Players have been swapped successfully.",
+      });
+      setShowSwapDialog(false);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to swap players. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSwap = (targetPlayerId: string) => {
+    swapPlayerMutation.mutate({
+      player1Id: player.id,
+      player2Id: targetPlayerId,
+    });
+  };
+
+  // Get available players for swapping (opposite status)
+  const getAvailablePlayersForSwap = () => {
+    if (player.status === "Queue") {
+      return allPlayers.filter((p) => p.id !== player.id && p.status === "Playing");
+    } else if (player.status === "Playing") {
+      return allPlayers.filter((p) => p.id !== player.id && p.status === "Queue");
+    } else {
+      // If on Break, can swap with either Queue or Playing
+      return allPlayers.filter((p) => p.id !== player.id && (p.status === "Queue" || p.status === "Playing"));
+    }
+  };
+
   return (
     <>
       <div
@@ -122,6 +165,13 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
             >
               <Pencil className="w-4 h-4 mr-2" />
               Edit Player
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setShowSwapDialog(true)}
+              data-testid="menu-item-swap"
+            >
+              <ArrowLeftRight className="w-4 h-4 mr-2" />
+              Swap with Player
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             {statusOptions.map((status) => (
@@ -175,6 +225,15 @@ export default function PlayerCard({ player, sessionId }: PlayerCardProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <SwapPlayerDialog
+        open={showSwapDialog}
+        onOpenChange={setShowSwapDialog}
+        currentPlayer={player}
+        availablePlayers={getAvailablePlayersForSwap()}
+        onSwap={handleSwap}
+        isPending={swapPlayerMutation.isPending}
+      />
     </>
   );
 }

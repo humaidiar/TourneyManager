@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,22 @@ export default function SwapPlayerDialog({
 }: SwapPlayerDialogProps) {
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
+  // Reset selection when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedPlayerId(null);
+    }
+  }, [open]);
+
   const handleSwap = () => {
     if (selectedPlayerId) {
       onSwap(selectedPlayerId);
-      setSelectedPlayerId(null);
     }
+  };
+
+  const handleClose = () => {
+    setSelectedPlayerId(null);
+    onOpenChange(false);
   };
 
   return (
@@ -81,10 +92,7 @@ export default function SwapPlayerDialog({
         <div className="flex gap-3 pt-4">
           <Button
             variant="outline"
-            onClick={() => {
-              onOpenChange(false);
-              setSelectedPlayerId(null);
-            }}
+            onClick={handleClose}
             className="flex-1 rounded-full"
             disabled={isPending}
             data-testid="button-cancel-swap"

@@ -85,7 +85,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {queuePlayers.length > 0 ? (
                   queuePlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {playingPlayers.length > 0 ? (
                   playingPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">
@@ -114,7 +114,7 @@ export default function PlayerManagement({
               <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1">
                 {breakPlayers.length > 0 ? (
                   breakPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} sessionId={sessionId} />
+                    <PlayerCard key={player.id} player={player} sessionId={sessionId} allPlayers={players} />
                   ))
                 ) : (
                   <div className="text-center py-8 text-sm text-muted-foreground">

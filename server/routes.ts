@@ -196,6 +196,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "One or both players not found" });
       }
 
+      // Validate both players belong to the same session
+      if (player1.sessionId !== player2.sessionId) {
+        return res.status(400).json({ message: "Players must be from the same session" });
+      }
+
+      // Validate status transition is meaningful (different statuses)
+      if (player1.status === player2.status) {
+        return res.status(400).json({ message: "Cannot swap players with the same status" });
+      }
+
       // Swap their statuses
       const player1Status = player1.status;
       const player2Status = player2.status;
