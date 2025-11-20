@@ -307,6 +307,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Complete all matches for a session
+  app.post("/api/sessions/:id/complete-all-matches", async (req, res) => {
+    try {
+      const sessionId = req.params.id;
+      const matches = await storage.getMatches(sessionId);
+      const activeMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
+
+      // Complete all active matches
+      for (const match of activeMatches) {
+        await storage.updateMatch(match.id, { status: "completed" });
+
+        // Move players back to queue
+        await storage.updatePlayer(match.team1Player1Id, { status: "Queue" });
+        await storage.updatePlayer(match.team1Player2Id, { status: "Queue" });
+        await storage.updatePlayer(match.team2Player1Id, { status: "Queue" });
+        await storage.updatePlayer(match.team2Player2Id, { status: "Queue" });
+      }
+
+      res.json({ success: true, completedCount: activeMatches.length });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

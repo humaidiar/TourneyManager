@@ -1,5 +1,10 @@
+import { useMutation } from "@tanstack/react-query";
+import { CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { Match, Player } from "@shared/schema";
 
 interface ActiveMatchesProps {
@@ -9,7 +14,29 @@ interface ActiveMatchesProps {
 }
 
 export default function ActiveMatches({ sessionId, matches, players }: ActiveMatchesProps) {
+  const { toast } = useToast();
   const pendingMatches = matches.filter((m) => m.status === "pending" || m.status === "in-progress");
+
+  const completeAllMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", `/api/sessions/${sessionId}/complete-all-matches`, {});
+    },
+    onSuccess: (data: any) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      toast({
+        title: "All matches completed",
+        description: `${data.completedCount} ${data.completedCount === 1 ? "match" : "matches"} completed. All players returned to queue.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to complete matches. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getPlayer = (playerId: string) => {
     return players.find((p) => p.id === playerId);
@@ -31,12 +58,24 @@ export default function ActiveMatches({ sessionId, matches, players }: ActiveMat
   return (
     <div className="space-y-6">
       {/* Section Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h2 className="text-2xl font-bold text-foreground">Active Matches</h2>
         {pendingMatches.length > 0 && (
-          <Badge variant="secondary" className="rounded-full text-base px-4 py-1">
-            {pendingMatches.length} {pendingMatches.length === 1 ? "match" : "matches"}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="secondary" className="rounded-full text-base px-4 py-1">
+              {pendingMatches.length} {pendingMatches.length === 1 ? "match" : "matches"}
+            </Badge>
+            <Button
+              onClick={() => completeAllMutation.mutate()}
+              disabled={completeAllMutation.isPending}
+              className="rounded-full"
+              variant="default"
+              data-testid="button-complete-all-matches"
+            >
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              {completeAllMutation.isPending ? "Completing..." : "Complete All Matches"}
+            </Button>
+          </div>
         )}
       </div>
 
