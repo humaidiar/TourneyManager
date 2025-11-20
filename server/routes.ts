@@ -180,6 +180,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Swap two players' status
+  app.post("/api/players/swap", async (req, res) => {
+    try {
+      const { player1Id, player2Id } = req.body;
+      
+      if (!player1Id || !player2Id) {
+        return res.status(400).json({ message: "Both player IDs are required" });
+      }
+
+      const player1 = await storage.getPlayer(player1Id);
+      const player2 = await storage.getPlayer(player2Id);
+
+      if (!player1 || !player2) {
+        return res.status(404).json({ message: "One or both players not found" });
+      }
+
+      // Swap their statuses
+      const player1Status = player1.status;
+      const player2Status = player2.status;
+
+      await storage.updatePlayer(player1Id, { status: player2Status });
+      await storage.updatePlayer(player2Id, { status: player1Status });
+
+      res.json({ success: true, player1, player2 });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // ==================== COURTS ====================
 
   // Get courts for a session
