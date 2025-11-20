@@ -84,6 +84,7 @@ export default function ActiveMatches({ sessionId, session, matches, players, co
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "players"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/sessions", sessionId, "matches"] });
       toast({
         title: "Players swapped",
         description: "Players have been swapped successfully.",
