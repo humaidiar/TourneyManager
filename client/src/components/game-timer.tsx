@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, RotateCcw } from "lucide-react";
+import { Play, Pause, RotateCcw, VolumeX } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import alarmSound from "@assets/ios_17_alarm_1763615561381.mp3";
 
 const PRESET_DURATIONS = [5, 10, 15];
 
@@ -11,20 +12,23 @@ export default function GameTimer() {
   const [isRunning, setIsRunning] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isAlarmPlaying, setIsAlarmPlaying] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   useEffect(() => {
-    // Initialize AudioContext
-    audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    // Initialize audio element with the alarm sound
+    audioRef.current = new Audio(alarmSound);
+    audioRef.current.loop = true; // Loop until stopped
     
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
       }
     };
   }, []);
@@ -56,53 +60,32 @@ export default function GameTimer() {
   }, [isRunning, timeRemaining]);
 
   const playAlarm = async () => {
-    if (!audioContextRef.current) return;
-
-    // Resume AudioContext if suspended (required for user interaction)
-    if (audioContextRef.current.state === 'suspended') {
-      await audioContextRef.current.resume();
+    if (!audioRef.current) return;
+    
+    try {
+      audioRef.current.currentTime = 0; // Reset to beginning
+      await audioRef.current.play();
+      setIsAlarmPlaying(true);
+    } catch (error) {
+      console.error('Failed to play alarm:', error);
     }
-
-    const playTone = (frequency: number, duration: number, delay: number, volume: number = 0.25) => {
-      setTimeout(() => {
-        if (!audioContextRef.current) return;
-        
-        const oscillator = audioContextRef.current.createOscillator();
-        const gainNode = audioContextRef.current.createGain();
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContextRef.current.destination);
-        
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine'; // Sine wave for pleasant, bell-like tone
-        
-        const now = audioContextRef.current.currentTime;
-        gainNode.gain.setValueAtTime(volume, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, now + duration);
-        
-        oscillator.start(now);
-        oscillator.stop(now + duration);
-      }, delay);
-    };
-
-    // Rising alert sequence: A4 → C#5 → E5 → A5 (ascending musical pattern)
-    playTone(440, 0.25, 0, 0.2);      // A4 - gentle start
-    playTone(554, 0.25, 200, 0.25);   // C#5 - rising
-    playTone(659, 0.3, 400, 0.3);     // E5 - getting louder
-    playTone(880, 0.4, 650, 0.35);    // A5 - final alert tone (louder & longer)
   };
 
-  const handleStart = async () => {
-    // Resume AudioContext on user interaction (required for browser audio policies)
-    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
-      await audioContextRef.current.resume();
+  const stopAlarm = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsAlarmPlaying(false);
     }
-    
+  };
+
+  const handleStart = () => {
     if (timeRemaining === 0) {
       setTimeRemaining(duration);
       setIsFinished(false);
     }
     setIsRunning(true);
+    stopAlarm(); // Stop alarm if it was playing
   };
 
   const handlePause = () => {
@@ -302,6 +285,21 @@ export default function GameTimer() {
           </div>
         </div>
 
+        {/* Alarm Stop Button - shown when alarm is playing */}
+        {isAlarmPlaying && (
+          <div className="flex justify-center mb-4">
+            <Button
+              onClick={stopAlarm}
+              variant="destructive"
+              className="rounded-full px-8 animate-pulse"
+              data-testid="button-stop-alarm"
+            >
+              <VolumeX className="w-4 h-4 mr-2" />
+              Stop Alarm
+            </Button>
+          </div>
+        )}
+
         {/* Controls */}
         <div className="flex gap-2 justify-center">
           {!isRunning ? (
@@ -309,6 +307,7 @@ export default function GameTimer() {
               onClick={handleStart}
               className="rounded-full px-8"
               data-testid="button-timer-start"
+              disabled={duration === 0}
             >
               <Play className="w-4 h-4 mr-2" />
               Start
