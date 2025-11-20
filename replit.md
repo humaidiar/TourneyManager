@@ -174,6 +174,9 @@ Currently, the application does not implement authentication or user accounts. A
 - Implemented proper design system following design_guidelines.md (rounded buttons, Inter font, consistent spacing)
 - Fixed session creation navigation (apiRequest now returns parsed JSON)
 - Updated default courts from 2 to 3 (Court 1, 2, 3 auto-created)
+- Active Matches section repositioned to appear above the 3-column grid for better visibility
+- Edit session functionality with pencil icon in top-right of session cards (name, description, location)
+- Session delete functionality with confirmation dialog
 
 ### Testing & Quality
 - All E2E tests passing with comprehensive coverage:
