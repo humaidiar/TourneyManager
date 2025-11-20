@@ -121,7 +121,6 @@ export default function EditSessionDialog({ session, onDeleted }: EditSessionDia
             size="icon"
             className="rounded-full"
             onClick={(e) => {
-              e.preventDefault();
               e.stopPropagation();
             }}
             onPointerDown={(e) => {
